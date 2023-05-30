@@ -1,10 +1,11 @@
 use crossterm::{
     cursor::{Hide, Show},
+    event::{self, Event, KeyCode},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use rusty_audio::Audio;
-use std::{error::Error, io};
+use std::{error::Error, io, time::Duration};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut audio = Audio::new();
@@ -22,6 +23,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     stdout.execute(EnterAlternateScreen)?;
     stdout.execute(Hide)?;
 
+    // Game Loop
+    'gameloop: loop {
+        // Input
+        while event::poll(Duration::default())? {
+            if let Event::Key(key_event) = event::read()? {
+                match key_event.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        audio.play("lose");
+                        break 'gameloop;
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
     // Cleanup
     audio.wait();
     stdout.execute(Show)?;
