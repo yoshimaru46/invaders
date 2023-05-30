@@ -34,12 +34,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut last_frame = frame::new_frame();
         let mut stdout = io::stdout();
         render::render(&mut stdout, &last_frame, &last_frame, true);
-        let curr_frame = match render_rx.recv() {
-            Ok(x) => x,
-            Err(_) => break,
-        };
-        render::render(&mut stdout, &last_frame, &curr_frame, false);
-        last_frame = curr_frame;
+        loop {
+            let curr_frame = match render_rx.recv() {
+                Ok(x) => x,
+                Err(_) => break,
+            };
+            render::render(&mut stdout, &last_frame, &curr_frame, false);
+            last_frame = curr_frame;
+        }
     });
 
     // Game Loop
